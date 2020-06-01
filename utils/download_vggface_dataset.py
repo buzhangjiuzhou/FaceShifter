@@ -9,7 +9,7 @@ import urllib.request
 timeout = 1
 socket.setdefaulttimeout(timeout)
 
-save_path = '/media/taotao/2T/vgg_face_dataset/'
+save_path = '/media/gpu/Data2/liuran/vggface'
 
 
 def download_and_save(url, savename):
