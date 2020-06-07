@@ -76,7 +76,9 @@ class MTCNN():
 
     def align_multi(self, img, limit=None, min_face_size=64.0, crop_size=(112, 112)):
         boxes, landmarks = self.detect_faces(img, min_face_size)
+        # print('test')
         if len(landmarks) == 0:
+            # print('fuck')
             return None
         if limit:
             boxes = boxes[:limit]
@@ -86,6 +88,7 @@ class MTCNN():
             facial5points = [[landmark[j],landmark[j+5]] for j in range(5)]
             warped_face = warp_and_crop_face(np.array(img), facial5points, self.refrence, crop_size=crop_size)
             faces.append(Image.fromarray(warped_face))
+            # print('test')
         # return boxes, faces
         return faces
 

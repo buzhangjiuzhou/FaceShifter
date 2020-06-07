@@ -22,6 +22,7 @@ show_step = 10
 save_epoch = 1
 model_save_path = './saved_models/'
 optim_level = 'O1'
+data_dir_vgg = '/media/gpu/Data2/liuran/vggface2'
 
 # fine_tune_with_identity = False
 
@@ -53,7 +54,10 @@ except Exception as e:
     # dataset = FaceEmbed(['../celeb-aligned-256_0.85/', '../ffhq_256_0.85/', '../vgg_256_0.85/', '../stars_256_0.85/'], same_prob=0.5)
 # else:
     # dataset = With_Identity('../washed_img/', 0.8)
-dataset = FaceEmbed(['../celeb-aligned-256_0.85/', '../ffhq_256_0.85/', '../vgg_256_0.85/', '../stars_256_0.85/'], same_prob=0.8)
+    
+# dataset = FaceEmbed(['../celeb-aligned-256_0.85/', '../ffhq_256_0.85/', '../vgg_256_0.85/', '../stars_256_0.85/'], same_prob=0.8)
+# 只使用vggface2作为数据集
+dataset = FaceEmbed([data_dir_vgg], same_prob=0.8)
 
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True)
 
