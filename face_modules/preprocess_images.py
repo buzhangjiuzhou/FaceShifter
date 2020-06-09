@@ -1,4 +1,5 @@
 # 预处理图像,根据人脸把图像裁剪成256*256的
+# 只处理了vggface2的数据
 import torch
 from mtcnn import MTCNN
 import cv2
