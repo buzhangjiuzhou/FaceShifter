@@ -13,8 +13,8 @@ from apex import amp
 import visdom
 
 
-vis = visdom.Visdom(server='127.0.0.1', env='faceshifter', port=8099)
-batch_size = 16
+vis = visdom.Visdom(server='127.0.0.1', env='faceshifter', port=8097)
+batch_size = 4
 lr_G = 4e-4
 lr_D = 4e-4
 max_epoch = 2000
@@ -92,8 +92,8 @@ def make_image(Xs, Xt, Y):
 print(torch.backends.cudnn.benchmark)
 #torch.backends.cudnn.benchmark = True
 for epoch in range(0, max_epoch):
-    # torch.cuda.empty_cache()
     for iteration, data in enumerate(dataloader):
+        # torch.cuda.empty_cache()  
         start_time = time.time()
         Xs, Xt, same_person = data
         Xs = Xs.to(device)
