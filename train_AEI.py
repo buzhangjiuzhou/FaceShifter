@@ -29,11 +29,13 @@ data_vgg2_aligned = '/media/gpu/Data2/liuran/vggface2_256_0.85/'
 device = torch.device('cuda')
 # torch.set_num_threads(12)
 
+# GAN训练部分
 G = AEI_Net(c_id=512).to(device)
 D = MultiscaleDiscriminator(input_nc=3, n_layers=6, norm_layer=torch.nn.InstanceNorm2d).to(device)
 G.train()
 D.train()
 
+# arcface部分
 arcface = Backbone(50, 0.6, 'ir_se').to(device)
 arcface.eval()
 arcface.load_state_dict(torch.load('./face_modules/model_ir_se50.pth', map_location=device), strict=False)
@@ -57,8 +59,7 @@ except Exception as e:
     
 # dataset = FaceEmbed(['../celeb-aligned-256_0.85/', '../ffhq_256_0.85/', '../vgg_256_0.85/', '../stars_256_0.85/'], same_prob=0.8)
 # 只使用vggface2作为数据集
-dataset = FaceEmbed([data_dir_vgg], same_prob=0.8)
-
+dataset = FaceEmbed([data_vgg2_aligned], same_prob=0.8)
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True)
 
 
@@ -78,7 +79,7 @@ def get_grid_image(X):
     X = torchvision.utils.make_grid(X.detach().cpu(), nrow=X.shape[0]) * 0.5 + 0.5
     return X
 
-
+# 输出展示
 def make_image(Xs, Xt, Y):
     Xs = get_grid_image(Xs)
     Xt = get_grid_image(Xt)

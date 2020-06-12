@@ -8,7 +8,7 @@ import numpy as np
 import os
 import cv2
 
-
+# 利用pytorch的TensorDataset类
 class FaceEmbed(TensorDataset):
     def __init__(self, data_path_list, same_prob=0.8):
         datasets = []
