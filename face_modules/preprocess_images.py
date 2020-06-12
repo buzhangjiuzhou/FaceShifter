@@ -1,5 +1,5 @@
-# 预处理图像,根据人脸把图像裁剪成256*256的
-# 只处理了vggface2的数据
+# 预处理图像,根据人脸把图像裁剪成256*256的,利用MTCNN得到人脸，然后将其裁剪之后保存。
+# 只处理了vggface2中训练集的数据
 import torch
 from mtcnn import MTCNN
 import cv2

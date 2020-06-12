@@ -22,7 +22,7 @@ show_step = 10
 save_epoch = 1
 model_save_path = './saved_models/'
 optim_level = 'O1'
-data_dir_vgg = '/media/gpu/Data2/liuran/vggface2'
+data_vgg2_aligned = '/media/gpu/Data2/liuran/vggface2_256_0.85/'
 
 # fine_tune_with_identity = False
 
