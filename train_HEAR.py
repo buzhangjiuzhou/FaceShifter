@@ -14,7 +14,7 @@ from apex import amp
 import visdom
 
 
-vis = visdom.Visdom(server='127.0.0.1', env='faceshifter', port=8099)
+vis = visdom.Visdom(server='127.0.0.1', env='faceshifter', port=8097)
 batch_size = 32
 lr = 4e-4
 max_epoch = 2000

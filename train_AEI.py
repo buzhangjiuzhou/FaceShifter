@@ -7,6 +7,7 @@ from face_modules.model import Backbone, Arcface, MobileFaceNet, Am_softmax, l2_
 import torch.nn.functional as F
 import torch
 import time
+import os
 import torchvision
 import cv2
 from apex import amp
@@ -26,29 +27,41 @@ data_vgg2_aligned = '/media/gpu/Data2/liuran/vggface2_256_0.85/'
 
 # fine_tune_with_identity = False
 
-device = torch.device('cuda')
+# device = torch.device('cuda')
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 # torch.set_num_threads(12)
 
 # GAN训练部分
-G = AEI_Net(c_id=512).to(device)
-D = MultiscaleDiscriminator(input_nc=3, n_layers=6, norm_layer=torch.nn.InstanceNorm2d).to(device)
+G = AEI_Net(c_id=512)
+D = MultiscaleDiscriminator(input_nc=3, n_layers=6, norm_layer=torch.nn.InstanceNorm2d)
+
 G.train()
 D.train()
 
 # arcface部分
-arcface = Backbone(50, 0.6, 'ir_se').to(device)
+arcface = Backbone(50, 0.6, 'ir_se')
 arcface.eval()
-arcface.load_state_dict(torch.load('./face_modules/model_ir_se50.pth', map_location=device), strict=False)
+
+arcface = torch.nn.DataParallel(arcface)
+arcface = arcface.cuda()
+
+arcface.load_state_dict(torch.load('./face_modules/model_ir_se50.pth', map_location={'cuda:1':'cuda:0'}), strict=False)
 
 opt_G = optim.Adam(G.parameters(), lr=lr_G, betas=(0, 0.999))
 opt_D = optim.Adam(D.parameters(), lr=lr_D, betas=(0, 0.999))
 
+G = G.cuda()
+D = D.cuda()
+
 G, opt_G = amp.initialize(G, opt_G, opt_level=optim_level)
 D, opt_D = amp.initialize(D, opt_D, opt_level=optim_level)
 
+G = torch.nn.DataParallel(G)
+D = torch.nn.DataParallel(D)
+
 try:
-    G.load_state_dict(torch.load('./saved_models/G_latest.pth', map_location=torch.device('cpu')), strict=False)
-    D.load_state_dict(torch.load('./saved_models/D_latest.pth', map_location=torch.device('cpu')), strict=False)
+    G.load_state_dict(torch.load('./saved_models/G_latest.pth', map_location={'cuda:1':'cuda:0'}), strict=False)
+    D.load_state_dict(torch.load('./saved_models/D_latest.pth', map_location={'cuda:1':'cuda:0'}), strict=False)
 except Exception as e:
     print(e)
 
@@ -93,15 +106,16 @@ print(torch.backends.cudnn.benchmark)
 #torch.backends.cudnn.benchmark = True
 for epoch in range(0, max_epoch):
     for iteration, data in enumerate(dataloader):
+
         # torch.cuda.empty_cache()  
         start_time = time.time()
         Xs, Xt, same_person = data
-        Xs = Xs.to(device)
-        Xt = Xt.to(device)
+        Xs = Xs.cuda()
+        Xt = Xt.cuda()
         # embed = embed.to(device)
         with torch.no_grad():
             embed, Xs_feats = arcface(F.interpolate(Xs[:, :, 19:237, 19:237], [112, 112], mode='bilinear', align_corners=True))
-        same_person = same_person.to(device)
+        same_person = same_person.cuda()
         #diff_person = (1 - same_person)
 
         # train G
@@ -119,7 +133,7 @@ for epoch in range(0, max_epoch):
         ZY, Y_feats = arcface(F.interpolate(Y_aligned, [112, 112], mode='bilinear', align_corners=True))
         L_id =(1 - torch.cosine_similarity(embed, ZY, dim=1)).mean()
 
-        Y_attr = G.get_attr(Y)
+        Y_attr = G.module.get_attr(Y)
         L_attr = 0
         for i in range(len(Xt_attr)):
             L_attr += torch.mean(torch.pow(Xt_attr[i] - Y_attr[i], 2).reshape(batch_size, -1), dim=1).mean()
@@ -161,11 +175,20 @@ for epoch in range(0, max_epoch):
             image = make_image(Xs, Xt, Y)
             vis.image(image[::-1, :, :], opts={'title': 'result'}, win='result')
             cv2.imwrite('./gen_images/latest.jpg', image.transpose([1,2,0]))
+        
+        vis.line(X=np.array([iteration]), Y=np.array([lossD.item()]), win='loss D', opts={'title': 'loss D'}, update='append')
+        vis.line(X=np.array([iteration]), Y=np.array([lossG.item()]), win='loss G', opts={'title': 'loss G'}, update='append')
+        vis.line(X=np.array([iteration]), Y=np.array([L_adv.item()]), win='L_adv', opts={'title': 'L_adv'}, update='append')
+        vis.line(X=np.array([iteration]), Y=np.array([L_id.item()]), win='L_id', opts={'title': 'L_id'}, update='append')
+        vis.line(X=np.array([iteration]), Y=np.array([L_attr.item()]), win='L_attr', opts={'title': 'L_attr'}, update='append')
+        vis.line(X=np.array([iteration]), Y=np.array([L_rec.item()]), win='L_rec', opts={'title': 'L_rec'}, update='append')
+
         print(f'epoch: {epoch}    {iteration} / {len(dataloader)}')
         print(f'lossD: {lossD.item()}    lossG: {lossG.item()} batch_time: {batch_time}s')
         print(f'L_adv: {L_adv.item()} L_id: {L_id.item()} L_attr: {L_attr.item()} L_rec: {L_rec.item()}')
         if iteration % 1000 == 0:
             torch.save(G.state_dict(), './saved_models/G_latest.pth')
             torch.save(D.state_dict(), './saved_models/D_latest.pth')
+            print("model saved!")
 
 

@@ -15,7 +15,8 @@ import os
 import shutil
 
 
-output_path = '../../hearnet_data/'
+output_path = '/media/gpu/Data2/liuran/hearnet_data/'
+data_vgg2_aligned = '/media/gpu/Data2/liuran/vggface2_256_0.85/'
 os.makedirs(output_path, exist_ok=True)
 
 batch_size = 32
@@ -35,7 +36,7 @@ test_transform = transforms.Compose([
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
-data_roots = ['../../celeb-aligned-256_0.85/', '../../ffhq_256_0.85/', '../../vgg_256_0.85/', '../../stars_256_0.85/']
+data_roots = data_vgg2_aligned
 
 all_lists = []
 for data_root in data_roots:
@@ -74,6 +75,7 @@ with torch.no_grad():
 
     scores.sort(key=comp, reverse=True)
     N = len(scores)
+    # 选出前10%的
     pick_num = int(N*0.1)
     scores = scores[:pick_num]
 

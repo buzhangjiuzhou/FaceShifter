@@ -14,7 +14,7 @@ import time
 
 from Xlib import display, X
 
-use_cuda_postprocess = True
+use_cuda_postprocess = False
 if use_cuda_postprocess:
     from cuda_postprocess import CudaPostprocess
     postprocesser = CudaPostprocess(256, 256)
@@ -109,6 +109,7 @@ mask = cv2.dilate(mask, None, iterations=20)
 cv2.namedWindow('image')#, cv2.WND_PROP_FULLSCREEN)
 cv2.setWindowProperty('image', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 cv2.moveWindow('image', 0, 0)
+
 while True:
     try:
         Xt_raw = screen_capture.read_frame()

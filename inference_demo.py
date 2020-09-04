@@ -10,8 +10,11 @@ import cv2
 import PIL.Image as Image
 import numpy as np
 
+# 只用了AEI-Net？
+
 detector = MTCNN()
 device = torch.device('cuda')
+
 G = AEI_Net(c_id=512)
 G.eval()
 G.load_state_dict(torch.load('./saved_models/G_latest.pth', map_location=torch.device('cpu')))
@@ -26,6 +29,7 @@ test_transform = transforms.Compose([
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
+# TODO:增加hear_net，同时针对多个图片
 Xs_path = '/home/taotao/Pictures/u=3322705847,3022779128&fm=26&gp=0.jpg'
 Xt_path = '/home/taotao/Pictures/u=3977885541,1855342996&fm=11&gp=0.jpg'
 
@@ -42,6 +46,7 @@ Xt = test_transform(Xt)
 
 Xs = Xs.unsqueeze(0).cuda()
 Xt = Xt.unsqueeze(0).cuda()
+
 with torch.no_grad():
     embeds, _ = arcface(F.interpolate(Xs[:, :, 19:237, 19:237], (112, 112), mode='bilinear', align_corners=True))
     embedt, __ = arcface(F.interpolate(Xt[:, :, 19:237, 19:237], (112, 112), mode='bilinear', align_corners=True))
