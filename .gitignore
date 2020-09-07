@@ -3,3 +3,4 @@ utils/__pycache__/*.*
 face_modules/__pycache__/*
 saved_models/*
 backup/*
+*.pth
