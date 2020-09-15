@@ -15,7 +15,7 @@ import visdom
 
 
 vis = visdom.Visdom(server='127.0.0.1', env='faceshifter', port=8097)
-batch_size = 4
+batch_size = 8
 lr_G = 4e-4
 lr_D = 4e-4
 max_epoch = 2000
@@ -72,7 +72,7 @@ except Exception as e:
     
 # dataset = FaceEmbed(['../celeb-aligned-256_0.85/', '../ffhq_256_0.85/', '../vgg_256_0.85/', '../stars_256_0.85/'], same_prob=0.8)
 # 只使用vggface2作为数据集
-dataset = FaceEmbed([data_vgg2_aligned], same_prob=0.8)
+dataset = FaceEmbed([data_vgg2_aligned], same_prob=0.2)
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True)
 
 
