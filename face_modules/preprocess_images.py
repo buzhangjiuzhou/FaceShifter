@@ -14,8 +14,8 @@ import os
 
 # img_root_dir = '/media/taotao/958c7d2d-c4ce-4117-a93b-c8a7aa4b88e3/taotao/part1/'
 # save_path = '/media/taotao/958c7d2d-c4ce-4117-a93b-c8a7aa4b88e3/taotao/stars_256_0.85/'
-img_root_dir = '/media/gpu/Data2/liuran/vggface2/train'
-save_path = '/media/gpu/Data2/liuran/vggface2_256_0.85/'
+img_root_dir = '/8330f83569024da1864ee620972b89a9/liuran/vggface2/train'
+save_path = '/8330f83569024da1864ee620972b89a9/liuran/vggface2_256/'
 
 # embed_path = '/home/taotao/Downloads/celeb-aligned-256/embed.pkl'
 
@@ -24,7 +24,7 @@ mtcnn = MTCNN()
 
 model = Backbone(50, 0.6, 'ir_se').to(device)
 model.eval()
-model.load_state_dict(torch.load('/home/gpu/liuran/FaceShifter/face_modules/model_ir_se50.pth'))
+model.load_state_dict(torch.load('/8330f83569024da1864ee620972b89a9/liuran/FaceShifter/face_modules/model_ir_se50.pth'))
 
 # threshold = 1.54
 test_transform = trans.Compose([
@@ -39,6 +39,7 @@ embed_map = {}
 
 # 找到图片
 for root, dirs, files in os.walk(img_root_dir):
+    print("test")
     for name in files:
         # 
         if name.endswith('jpg') or name.endswith('png'):
