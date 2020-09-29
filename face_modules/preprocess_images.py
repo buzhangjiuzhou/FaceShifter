@@ -14,8 +14,8 @@ import os
 
 # img_root_dir = '/media/taotao/958c7d2d-c4ce-4117-a93b-c8a7aa4b88e3/taotao/part1/'
 # save_path = '/media/taotao/958c7d2d-c4ce-4117-a93b-c8a7aa4b88e3/taotao/stars_256_0.85/'
-img_root_dir = '/media/gpu/Data2/liuran/vggface2/train'
-save_path = '/media/gpu/Data2/liuran/vggface2_256_0.85/'
+img_root_dir = '/media/gpu/Data2/liuran/images1024x1024/'
+save_path = '/media/gpu/Data2/liuran/ffhq_256/'
 
 # embed_path = '/home/taotao/Downloads/celeb-aligned-256/embed.pkl'
 

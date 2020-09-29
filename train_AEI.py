@@ -23,12 +23,12 @@ show_step = 10
 save_epoch = 1
 model_save_path = './saved_models/'
 optim_level = 'O1'
-data_vgg2_aligned = '/media/gpu/Data2/liuran/vggface2_256_0.85/'
+data_vgg2_aligned = '/media/gpu/Data2/liuran/ffhq_256/'
 
 # fine_tune_with_identity = False
 
 # device = torch.device('cuda')
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 # torch.set_num_threads(12)
 
 # GAN训练部分
@@ -45,7 +45,7 @@ arcface.eval()
 arcface = torch.nn.DataParallel(arcface)
 arcface = arcface.cuda()
 
-arcface.load_state_dict(torch.load('./face_modules/model_ir_se50.pth', map_location={'cuda:1':'cuda:0'}), strict=False)
+arcface.load_state_dict(torch.load('./face_modules/model_ir_se50.pth', map_location={'cuda:0'}), strict=False)
 
 opt_G = optim.Adam(G.parameters(), lr=lr_G, betas=(0, 0.999))
 opt_D = optim.Adam(D.parameters(), lr=lr_D, betas=(0, 0.999))
@@ -60,8 +60,8 @@ G = torch.nn.DataParallel(G)
 D = torch.nn.DataParallel(D)
 
 try:
-    G.load_state_dict(torch.load('./saved_models/G_latest.pth', map_location={'cuda:1':'cuda:0'}), strict=False)
-    D.load_state_dict(torch.load('./saved_models/D_latest.pth', map_location={'cuda:1':'cuda:0'}), strict=False)
+    G.load_state_dict(torch.load('./saved_models/G_latest.pth', map_location={'cuda:0'}), strict=False)
+    D.load_state_dict(torch.load('./saved_models/D_latest.pth', map_location={'cuda:0'}), strict=False)
 except Exception as e:
     print(e)
 
@@ -72,7 +72,7 @@ except Exception as e:
     
 # dataset = FaceEmbed(['../celeb-aligned-256_0.85/', '../ffhq_256_0.85/', '../vgg_256_0.85/', '../stars_256_0.85/'], same_prob=0.8)
 # 只使用vggface2作为数据集
-dataset = FaceEmbed([data_vgg2_aligned], same_prob=0.2)
+dataset = FaceEmbed([data_vgg2_aligned], same_prob=0.8)
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True)
 
 
@@ -104,7 +104,7 @@ def make_image(Xs, Xt, Y):
 
 print(torch.backends.cudnn.benchmark)
 #torch.backends.cudnn.benchmark = True
-for epoch in range(0, max_epoch):
+for epoch in range(7, max_epoch):
     for iteration, data in enumerate(dataloader):
 
         # torch.cuda.empty_cache()  
@@ -133,7 +133,7 @@ for epoch in range(0, max_epoch):
         ZY, Y_feats = arcface(F.interpolate(Y_aligned, [112, 112], mode='bilinear', align_corners=True))
         L_id =(1 - torch.cosine_similarity(embed, ZY, dim=1)).mean()
 
-        Y_attr = G.module.get_attr(Y)
+        Y_attr = G.get_attr(Y)
         L_attr = 0
         for i in range(len(Xt_attr)):
             L_attr += torch.mean(torch.pow(Xt_attr[i] - Y_attr[i], 2).reshape(batch_size, -1), dim=1).mean()
@@ -176,13 +176,13 @@ for epoch in range(0, max_epoch):
             vis.image(image[::-1, :, :], opts={'title': 'result'}, win='result')
             cv2.imwrite('./gen_images/latest.jpg', image.transpose([1,2,0]))
         
-        vis.line(X=np.array([iteration]), Y=np.array([lossD.item()]), win='loss D', opts={'title': 'loss D'}, update='append')
-        vis.line(X=np.array([iteration]), Y=np.array([lossG.item()]), win='loss G', opts={'title': 'loss G'}, update='append')
-        vis.line(X=np.array([iteration]), Y=np.array([L_adv.item()]), win='L_adv', opts={'title': 'L_adv'}, update='append')
-        vis.line(X=np.array([iteration]), Y=np.array([L_id.item()]), win='L_id', opts={'title': 'L_id'}, update='append')
-        vis.line(X=np.array([iteration]), Y=np.array([L_attr.item()]), win='L_attr', opts={'title': 'L_attr'}, update='append')
-        vis.line(X=np.array([iteration]), Y=np.array([L_rec.item()]), win='L_rec', opts={'title': 'L_rec'}, update='append')
-
+        vis.line(X=np.array([iteration + (epoch * len(dataloader))]), Y=np.array([lossD.item()]), win='loss D', opts={'title': 'loss D'}, update='append')
+        vis.line(X=np.array([iteration + (epoch * len(dataloader))]), Y=np.array([lossG.item()]), win='loss G', opts={'title': 'loss G'}, update='append')
+        vis.line(X=np.array([iteration + (epoch * len(dataloader))]), Y=np.array([L_adv.item()]), win='L_adv', opts={'title': 'L_adv'}, update='append')
+        vis.line(X=np.array([iteration + (epoch * len(dataloader))]), Y=np.array([L_id.item()]), win='L_id', opts={'title': 'L_id'}, update='append')
+        vis.line(X=np.array([iteration + (epoch * len(dataloader))]), Y=np.array([L_attr.item()]), win='L_attr', opts={'title': 'L_attr'}, update='append')
+        vis.line(X=np.array([iteration + (epoch * len(dataloader))]), Y=np.array([L_rec.item()]), win='L_rec', opts={'title': 'L_rec'}, update='append')
+ 
         print(f'epoch: {epoch}    {iteration} / {len(dataloader)}')
         print(f'lossD: {lossD.item()}    lossG: {lossG.item()} batch_time: {batch_time}s')
         print(f'L_adv: {L_adv.item()} L_id: {L_id.item()} L_attr: {L_attr.item()} L_rec: {L_rec.item()}')
