@@ -15,7 +15,7 @@ import visdom
 
 
 vis = visdom.Visdom(server='127.0.0.1', env='faceshifter', port=8097)
-batch_size = 8
+batch_size = 4
 lr_G = 4e-4
 lr_D = 4e-4
 max_epoch = 2000
@@ -45,7 +45,7 @@ arcface.eval()
 arcface = torch.nn.DataParallel(arcface)
 arcface = arcface.cuda()
 
-arcface.load_state_dict(torch.load('./face_modules/model_ir_se50.pth', map_location={'cuda:0'}), strict=False)
+arcface.load_state_dict(torch.load('./face_modules/model_ir_se50.pth'), strict=False)
 
 opt_G = optim.Adam(G.parameters(), lr=lr_G, betas=(0, 0.999))
 opt_D = optim.Adam(D.parameters(), lr=lr_D, betas=(0, 0.999))
@@ -56,12 +56,12 @@ D = D.cuda()
 G, opt_G = amp.initialize(G, opt_G, opt_level=optim_level)
 D, opt_D = amp.initialize(D, opt_D, opt_level=optim_level)
 
-G = torch.nn.DataParallel(G)
-D = torch.nn.DataParallel(D)
+# G = torch.nn.DataParallel(G)
+# D = torch.nn.DataParallel(D)
 
 try:
-    G.load_state_dict(torch.load('./saved_models/G_latest.pth', map_location={'cuda:0'}), strict=False)
-    D.load_state_dict(torch.load('./saved_models/D_latest.pth', map_location={'cuda:0'}), strict=False)
+    G.load_state_dict(torch.load('./saved_models/G_latest.pth'), strict=False)
+    D.load_state_dict(torch.load('./saved_models/D_latest.pth'), strict=False)
 except Exception as e:
     print(e)
 
@@ -104,7 +104,7 @@ def make_image(Xs, Xt, Y):
 
 print(torch.backends.cudnn.benchmark)
 #torch.backends.cudnn.benchmark = True
-for epoch in range(7, max_epoch):
+for epoch in range(0, max_epoch):
     for iteration, data in enumerate(dataloader):
 
         # torch.cuda.empty_cache()  
