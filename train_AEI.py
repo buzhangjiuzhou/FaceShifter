@@ -12,7 +12,7 @@ import torchvision
 import cv2
 from apex import amp
 import visdom
-
+# 
 
 vis = visdom.Visdom(server='127.0.0.1', env='faceshifter', port=8097)
 batch_size = 4
