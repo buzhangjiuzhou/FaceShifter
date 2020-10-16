@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: train_AEI",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/liuran/faceshifter-modify/train_AEI.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python: 当前文件",
             "type": "python",
             "request": "launch",

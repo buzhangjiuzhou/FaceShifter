@@ -52,10 +52,6 @@ class AAD_ResBlk(nn.Module):
         self.conv2 = nn.Conv2d(cin, cout, kernel_size=3, stride=1, padding=1, bias=False)
         self.relu2 = nn.ReLU(inplace=True)
 
-        if cin != cout:
-            self.AAD3 = AADLayer(cin, c_attr, c_id)
-            self.conv3 = nn.Conv2d(cin, cout, kernel_size=3, stride=1, padding=1, bias=False)
-            self.relu3 = nn.ReLU(inplace=True)
 
     def forward(self, h, z_attr, z_id):
         x = self.AAD1(h, z_attr, z_id)
@@ -65,12 +61,6 @@ class AAD_ResBlk(nn.Module):
         x = self.AAD2(x,z_attr, z_id)
         x = self.relu2(x)
         x = self.conv2(x)
-
-        if self.cin != self.cout:
-            h = self.AAD3(h, z_attr, z_id)
-            h = self.relu3(h)
-            h = self.conv3(h)
-        x = x + h
         
         return x
 

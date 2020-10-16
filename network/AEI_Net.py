@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .AADLayer import *
 
-
 def weight_init(m):
     if isinstance(m, nn.Linear):
         m.weight.data.normal_(0, 0.001)
@@ -14,14 +13,12 @@ def weight_init(m):
     if isinstance(m, nn.ConvTranspose2d):
         nn.init.xavier_normal_(m.weight.data)
 
-
 def conv4x4(in_c, out_c, norm=nn.BatchNorm2d):
     return nn.Sequential(
         nn.Conv2d(in_channels=in_c, out_channels=out_c, kernel_size=4, stride=2, padding=1, bias=False),
         norm(out_c),
         nn.LeakyReLU(0.1, inplace=True)
     )
-
 
 class deconv4x4(nn.Module):
     def __init__(self, in_c, out_c, norm=nn.BatchNorm2d):
@@ -36,10 +33,9 @@ class deconv4x4(nn.Module):
         x = self.lrelu(x)
         return torch.cat((x, skip), dim=1)
 
-
-class MLAttrEncoder(nn.Module):
+class AttrEncoder(nn.Module):
     def __init__(self):
-        super(MLAttrEncoder, self).__init__()
+        super(AttrEncoder, self).__init__()
         self.conv1 = conv4x4(3, 32)
         self.conv2 = conv4x4(32, 64)
         self.conv3 = conv4x4(64, 128)
@@ -47,13 +43,6 @@ class MLAttrEncoder(nn.Module):
         self.conv5 = conv4x4(256, 512)
         self.conv6 = conv4x4(512, 1024)
         self.conv7 = conv4x4(1024, 1024)
-
-        self.deconv1 = deconv4x4(1024, 1024)
-        self.deconv2 = deconv4x4(2048, 512)
-        self.deconv3 = deconv4x4(1024, 256)
-        self.deconv4 = deconv4x4(512, 128)
-        self.deconv5 = deconv4x4(256, 64)
-        self.deconv6 = deconv4x4(128, 32)
 
         self.apply(weight_init)
 
@@ -70,17 +59,10 @@ class MLAttrEncoder(nn.Module):
         # 512x8x8
         feat6 = self.conv6(feat5)
         # 1024x4x4
-        z_attr1 = self.conv7(feat6)
+        feat7 = self.conv7(feat6)
         # 1024x2x2
 
-        z_attr2 = self.deconv1(z_attr1, feat6)
-        z_attr3 = self.deconv2(z_attr2, feat5)
-        z_attr4 = self.deconv3(z_attr3, feat4)
-        z_attr5 = self.deconv4(z_attr4, feat3)
-        z_attr6 = self.deconv5(z_attr5, feat2)
-        z_attr7 = self.deconv6(z_attr6, feat1)
-        z_attr8 = F.interpolate(z_attr7, scale_factor=2, mode='bilinear', align_corners=True)
-        return z_attr1, z_attr2, z_attr3, z_attr4, z_attr5, z_attr6, z_attr7, z_attr8
+        return feat7, feat6, feat5, feat4, feat3, feat2, feat1
 
 
 class AADGenerator(nn.Module):
@@ -114,7 +96,7 @@ class AADGenerator(nn.Module):
 class AEI_Net(nn.Module):
     def __init__(self, c_id=256):
         super(AEI_Net, self).__init__()
-        self.encoder = MLAttrEncoder()
+        self.encoder = AttrEncoder()
         self.generator = AADGenerator(c_id)
 
     def forward(self, Xt, z_id):

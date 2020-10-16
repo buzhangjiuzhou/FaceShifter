@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/home/gpu/anaconda3/envs/liuran/bin/python"
+    "python.pythonPath": "/home/gpu/anaconda3/envs/liuran/bin/python",
+    "terminal.integrated.copyOnSelection": true
 }
